@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import cv2
 import numpy as np
@@ -6,7 +7,6 @@ from utils import label_map_util
 from utils import visualization_utils as vis_util
 from scipy import ndimage
 from threading import Thread
-
 import face_recognition
 import pickle
 
@@ -48,19 +48,15 @@ class Detection:
         with open(self.f_model_path, 'rb') as f:
             knn_clf = pickle.load(f)
 
-        # print(type(frame))
         '''cv2.imshow("cropped frame", frame)
         cv2.waitKey(0)'''
         rgb_frame = frame[:, :, ::-1]
         face_locations = face_recognition.face_locations(rgb_frame)
-
         if len(face_locations) == 0:
             print("yuz yok")
             return None
         print("yuz var")
-
         faces_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-
         closest_distances = knn_clf.kneighbors(faces_encodings, n_neighbors=1)
         are_matches = [closest_distances[0][i][0] <= distance_threshold for i in range(len(face_locations))]
 
@@ -100,6 +96,31 @@ class Detection:
         del lis
 
     def visualize_and_write(self, frame, boxes, classes, scores, predictions, output):
+        # ----------------------------------LANDSCAPE----------------------------------------
+        # Draw a transparent overlay
+        bottom = 30
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        y1 = bottom + (len(self.checklist)*30 + 60)*(len(self.isciler))
+        alpha = 0.4
+        overlay = frame.copy()
+        cv2.rectangle(overlay, (0, 0), (350, y1), (0, 0, 0), -1)
+        cv2.addWeighted(overlay, alpha, frame, 1-alpha, 0, frame)
+        # Print user's checklists on frame
+        for i in range(len(self.isciler)):
+            cv2.putText(frame, str(self.isciler[i]['name']), (10, bottom), font, 1, (255, 255, 255), 2)
+            bottom += 30
+            checklist = list(set(self.checklist) ^ set(self.isciler[i]['list']))
+            for element in checklist:
+                # yesil yazar, esya var
+                cv2.putText(frame, "- " + str(element), (20, bottom), font, 1, (0, 255, 0), 2)
+                bottom += 30
+            for j in range(len(self.isciler[i]['list'])):
+                # kirmizi yazar, esya yok
+                cv2.putText(frame, "- " + str(self.isciler[i]['list'][j]), (20, bottom), font, 1, (0, 0, 255), 2)
+                bottom += 30
+            cv2.putText(frame, "___________________", (0, bottom), font, 1, (255, 255, 255), 2)
+            bottom += 60
+        # -----------------------------------------------------------------------------------
         # Draw the results of the detection (aka 'visualize the results')
         vis_util.visualize_boxes_and_labels_on_image_array(
             frame,
@@ -120,35 +141,6 @@ class Detection:
                 cv2.rectangle(frame, (left, bottom - 25), (right, bottom), (0, 0, 255), cv2.FILLED)
                 font = cv2.FONT_HERSHEY_DUPLEX
                 cv2.putText(frame, name, (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
-
-        # Print user's checklists on frame
-        left = 0
-        bottom = 30
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        for i in range(len(self.isciler)):
-            print(self.isciler[i])
-            name = str(self.isciler[i]['name'])
-            cv2.putText(frame, name, (left, bottom), font, 1, (255, 255, 255), 2)
-            bottom += 30
-            for element in self.checklist:
-                j = 0
-                flag = False
-                while (j < len(self.isciler[i]['list'])) and flag is False:
-                    if element == self.isciler[i]['list'][j]:
-                        obje = "- " + str(self.isciler[i]['list'][j])
-                        cv2.putText(frame, obje, (left, bottom), font, 1, (0, 0, 255), 2)
-                        flag = True
-                    else:
-                        j += 1
-                if flag is False:
-                    obje = "- " + str(element)
-                    cv2.putText(frame, obje, (left, bottom), font, 1, (0, 255, 0), 2)
-
-                bottom += 30
-
-            line = "-------------"
-            cv2.putText(frame, line, (left, bottom), font, 1, (255, 255, 255), 2)
-            bottom += 60
         '''cv2.imshow('frame', frame)
         cv2.waitKey(0)'''
 
@@ -170,55 +162,50 @@ class Detection:
 
             frame_width = int(self.video.get(3))
             frame_height = int(self.video.get(4))
-            print("frame height: ", frame_height, "frame_width: ", frame_width)
+            print("frame height:", frame_height, "frame_width:", frame_width)
             # -----------------------------------PORTRAIT-----------------------------------------
-            '''
-            frame_width = int(frame_width / 2)
-            frame_height = int(frame_height / 2)
-            width = frame_width
-            frame_width = frame_height
-            frame_height = width'''
+            '''temp = int(frame_width / 2)
+            frame_width = int(frame_height / 2)
+            frame_height = temp'''
             # ------------------------------------------------------------------------------------
-            # eger videoda herhangi bir dondurma islemi yoksa ustteki commente kadar olan kisim
-
             output = cv2.VideoWriter(output_path, fourcc, fps, (frame_width, frame_height))
-
+            frame_number = 0
             while self.video.isOpened():
                 ret, frame = self.video.read()
                 # cv2.imshow("frame", frame[20:25, 80:99])
 
                 if ret is True:
+                    frame_number += 1
                     # -----------------------------------PORTRAIT----------------------------------------
                     '''frame = ndimage.rotate(frame, 270)
-                    frame = cv2.resize(frame, (frame_height, frame_width))'''
+                    frame = cv2.resize(frame, (frame_width, frame_height))'''
                     # -----------------------------------------------------------------------------------
                     (boxes, scores, classes, num) = self.process_frame(frame, sess, image_tensor, output_tensors)
 
                     # boxes: koordinatlar, score: yuzdelikler, classes: hangi obje oldugu int, num: index
                     detections = {'meta': {},
                                   'objects': {}}
+
                     # 1 -> yelek, 2 -> kask, 3 -> gozluk, 4 -> eldiven, 5 -> isci
                     # 6 -> yelek_yok, 7 -> kask_yok, 8 -> isci_yok, 9 -> eldiven_yok
-
                     for i in range(1, len(self.category_index) + 1):
                         self.dictionary_maker(i, detections, boxes, scores, classes, num)
-
                     predictions = []
+
                     # isci varsa yuz tanimaya git
                     if self.checklistController[0](detections) is True:
                         coords = self.checklistController[3](detections)
 
                         for i in range(len(coords)):
                             # buldugun isci frame'ini kirp
-
                             cropped_frame = np.array(frame[
                                                      int(coords[i][0] * frame_height): int(coords[i][2] * frame_height),
                                                      int(coords[i][1] * frame_width): int(coords[i][3] * frame_width)
                                                      ])
                             prediction = self.recognize_face(cropped_frame)
-                            print("prediction", prediction)
+                            # print("prediction", prediction)
                             # prediction[0][0] -> isim, prediction[0][1] -> koordinatlar
-                            if prediction is not None:
+                            if prediction is not None and prediction[0][0] != 'unknown':
                                 i = 0
                                 flag = False
                                 while i < len(self.isciler) and flag is False:
@@ -228,21 +215,23 @@ class Detection:
                                         i += 1
                                 if flag is False:
                                     self.isciler.append({'name': prediction[0][0], 'list': self.checklist})
-
                                 # oteleme yapiliyor
-
                                 prediction = [[name, (top + abs(0 - int(coords[i][0] * frame_height)),
                                                       right + abs(0 - int(coords[i][1] * frame_width)),
                                                       bottom + abs(0 - int(coords[i][0] * frame_height)),
                                                       left + abs(0 - int(coords[i][1] * frame_width)))]
                                               for name, (top, right, bottom, left) in prediction]
-
                                 predictions.append(prediction)
-                                # direkt o kisinin listesini gonder
-                                print("isim: ", self.isciler[i]['name'])
+                                # esyalar iscinin box'inin icinde mi kontrolu
+                                '''self.isciler[i]['list'] = self.checklistController[1](
+                                    detections, self.isciler[i]['list'], coords[i], frame_height, frame_width)'''
                                 self.isciler[i]['list'] = self.checklistController[1](
-                                    detections, self.isciler[i]['list'], coords[i], frame_height, frame_width)
+                                    detections, self.checklist, coords[i], frame_height, frame_width)
+                    # output = 1
                     self.visualize_and_write(frame, boxes, classes, scores, predictions, output)
+                    # Write the resulting image to the output video file
+                    print("Writing frame {} / {}".format(frame_number, frames))
+
                     print(self.isciler)
 
                     # condition-callback yapisi

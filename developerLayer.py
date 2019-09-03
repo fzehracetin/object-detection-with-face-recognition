@@ -24,7 +24,8 @@ class Checker:
         # box[0] -> y0, box[1] -> x0, box[2] -> y1, box[3] -> x1
         buffer = 10
         # print("boxes: ", boxes[0]*frame_height, boxes[1]*frame_width, boxes[2]*frame_height, boxes[3]*frame_width)
-        # print("coords: ", coords[0]*frame_height, coords[1]*frame_width, coords[2]*frame_height, coords[3]*frame_width)
+        # print("coords: ", coords[0]*frame_height, coords[1]*frame_width, coords[2]*frame_height,
+        # coords[3]*frame_width)
         return \
             boxes[0]*frame_height - buffer <= coords[0]*frame_height and \
             boxes[1]*frame_width - buffer <= coords[1]*frame_width and \
@@ -104,7 +105,7 @@ def main():
     # 4- Label dosyasındaki label sayisi
     NUM_CLASSES = 9
 
-    f_model_path = "/home/zehra/PycharmProjects/face_recognition/trained_knn_model.clf"
+    f_model_path = "/home/zehra/PycharmProjects/object_detection/trained_knn_model.clf"
 
     # 5- Kontrol edilmek istenen esyalar burada verilmelidir.
     checker = Checker({'yelek', 'kask', 'gozluk', 'eldiven'}, 2)
@@ -113,7 +114,7 @@ def main():
     detectObj = coreLayer.Detection(PATH_TO_CKPT, PATH_TO_LABELS, NUM_CLASSES, f_model_path)
 
     # 8- Video dosyasının full pathi set_video methoduna parametre olarak verilir.
-    detectObj.set_video("/home/zehra/PycharmProjects/object_detection/input9.mp4")
+    detectObj.set_video("/home/zehra/PycharmProjects/object_detection/input11.mp4")
 
     # 9- Conditionlar ve callback methodları add_conditional_capture
     # isimli methoda verilerek condition ve callback tupleları olusturulur.
