@@ -8,6 +8,7 @@ For object detection I worked with Tensorflow's Faster RCNN model. If you want t
 
 For face recognition I worked with [Ageitgey](https://github.com/ageitgey)'s [face_recognition api](https://github.com/ageitgey/face_recognition). You can check my implementation on this api with that [link](https://github.com/fzehracetin/face_recognition).
 
+### Sample Output
 This is an sample output for our program to run. 
 
 
