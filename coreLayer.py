@@ -206,13 +206,13 @@ class Detection:
                             # print("prediction", prediction)
                             # prediction[0][0] -> isim, prediction[0][1] -> koordinatlar
                             if prediction is not None and prediction[0][0] != 'unknown':
-                                i = 0
+                                j = 0
                                 flag = False
-                                while i < len(self.isciler) and flag is False:
-                                    if prediction[0][0] == self.isciler[i]['name']:
+                                while j < len(self.isciler) and flag is False:
+                                    if prediction[0][0] == self.isciler[j]['name']:
                                         flag = True
                                     else:
-                                        i += 1
+                                        j += 1
                                 if flag is False:
                                     self.isciler.append({'name': prediction[0][0], 'list': self.checklist})
                                 # oteleme yapiliyor
@@ -225,7 +225,7 @@ class Detection:
                                 # esyalar iscinin box'inin icinde mi kontrolu
                                 '''self.isciler[i]['list'] = self.checklistController[1](
                                     detections, self.isciler[i]['list'], coords[i], frame_height, frame_width)'''
-                                self.isciler[i]['list'] = self.checklistController[1](
+                                self.isciler[j]['list'] = self.checklistController[1](
                                     detections, self.checklist, coords[i], frame_height, frame_width)
                     # output = 1
                     self.visualize_and_write(frame, boxes, classes, scores, predictions, output)
