@@ -9,9 +9,8 @@ import coreLayer
 
 
 class Checker:
-    def __init__(self, checklist, num_frame):
+    def __init__(self, checklist):
         self.checklist = checklist
-        self.num_frame = num_frame
 
     def on_isci_detection(self, detections):
         th = 0.7
@@ -59,7 +58,7 @@ class Checker:
         coords = []
         for i in range(detections['meta']['isci']):
             if detections['objects']['isci'][i][0] >= th:
-                print(detections['objects']['isci'][i][1])
+                # print(detections['objects']['isci'][i][1])
                 coords.append(detections['objects']['isci'][i][1])
         return coords
 
@@ -108,13 +107,12 @@ def main():
     f_model_path = "/home/zehra/PycharmProjects/object_detection/trained_knn_model.clf"
 
     # 5- Kontrol edilmek istenen esyalar burada verilmelidir.
-    checker = Checker({'yelek', 'kask', 'gozluk', 'eldiven'}, 2)
-
+    checker = Checker({'yelek', 'kask', 'gozluk', 'eldiven'}) # guncellee!!!!!!!!!!!!!!1 frame e gerek yok'
     # 7- Core'daki Detection classına modelin agirliklari, label dosyasi, sinif sayisi parametre olarak verilir.
     detectObj = coreLayer.Detection(PATH_TO_CKPT, PATH_TO_LABELS, NUM_CLASSES, f_model_path)
 
     # 8- Video dosyasının full pathi set_video methoduna parametre olarak verilir.
-    detectObj.set_video("/home/zehra/PycharmProjects/object_detection/input11.mp4")
+    detectObj.set_video("/home/zehra/PycharmProjects/object_detection/input15.mp4")
 
     # 9- Conditionlar ve callback methodları add_conditional_capture
     # isimli methoda verilerek condition ve callback tupleları olusturulur.

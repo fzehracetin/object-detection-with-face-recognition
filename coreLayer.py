@@ -70,7 +70,6 @@ class Detection:
         self.checklistController = (
             checker.on_isci_detection, checker.is_in_checklist, checker.output_reader, checker.detect_and_crop)
         self.checklist = checker.checklist
-        self.num_frame = checker.num_frame
 
     def set_video(self, path):
         self.video = cv2.VideoCapture(path)
@@ -195,7 +194,7 @@ class Detection:
                     # isci varsa yuz tanimaya git
                     if self.checklistController[0](detections) is True:
                         coords = self.checklistController[3](detections)
-
+                        # coords[0] -> y0, coords[1] -> x0, coords[2] -> y1, coords[3] -> x1
                         for i in range(len(coords)):
                             # buldugun isci frame'ini kirp
                             cropped_frame = np.array(frame[
@@ -223,8 +222,8 @@ class Detection:
                                               for name, (top, right, bottom, left) in prediction]
                                 predictions.append(prediction)
                                 # esyalar iscinin box'inin icinde mi kontrolu
-                                '''self.isciler[i]['list'] = self.checklistController[1](
-                                    detections, self.isciler[i]['list'], coords[i], frame_height, frame_width)'''
+                                '''self.isciler[j]['list'] = self.checklistController[1](
+                                    detections, self.isciler[j]['list'], coords[i], frame_height, frame_width)'''
                                 self.isciler[j]['list'] = self.checklistController[1](
                                     detections, self.checklist, coords[i], frame_height, frame_width)
                     # output = 1
@@ -241,6 +240,7 @@ class Detection:
             self.video.release()
             # output.release()
             cv2.destroyAllWindows()
+
 
     def process_frame(self, frame, sess, image_tensor, output_tensors):
         image_expanded = np.expand_dims(frame, axis=0)
